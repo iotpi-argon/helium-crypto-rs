@@ -6,6 +6,8 @@ use p256::{ecdsa, elliptic_curve};
 use sha2::{Digest, Sha256};
 use std::convert::{TryFrom, TryInto};
 
+pub use iotpi_helium_optee;
+
 pub struct Keypair {
     pub network: Network,
     pub public_key: public_key::PublicKey,
