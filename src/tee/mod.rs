@@ -9,6 +9,7 @@ use std::convert::{TryFrom, TryInto};
 pub struct Keypair {
     pub network: Network,
     pub public_key: public_key::PublicKey,
+    slot: u8,
 }
 
 impl PartialEq for Keypair {
@@ -36,7 +37,7 @@ impl keypair::Sign for Keypair {
 impl signature::Signer<Signature> for Keypair {
     fn try_sign(&self, msg: &[u8]) -> std::result::Result<Signature, signature::Error> {
         let digest = Sha256::digest(msg);
-        let sign_result = iotpi_helium_optee::ecdsa_sign_digest(&digest);
+        let sign_result = iotpi_helium_optee::ecdsa_sign_digest(self.slot, &digest);
         match sign_result {
             Ok(bytes) => {
                 let signature = ecdsa::Signature::try_from(&bytes[..])?;
@@ -49,8 +50,8 @@ impl signature::Signer<Signature> for Keypair {
 }
 
 impl Keypair {
-    pub fn keypair() -> Self {
-        let pubkey = iotpi_helium_optee::publickey().expect("failed to get tee public key");
+    pub fn keypair(slot: u8) -> Self {
+        let pubkey = iotpi_helium_optee::publickey(slot).expect("failed to get tee public key");
         let mut key_bytes = vec![4u8];
         key_bytes.extend_from_slice(&pubkey.0);
         key_bytes.extend_from_slice(&pubkey.1);
@@ -60,6 +61,7 @@ impl Keypair {
         let keypair = Keypair {
             network: Network::MainNet,
             public_key,
+            slot,
         };
 
         return keypair;
@@ -80,7 +82,8 @@ impl Keypair {
         let key = public_key.try_into()?;
         let point = key.0.to_encoded_point(false);
         println!("point: {:?}", &point);
-        let shared_secret_bytes = iotpi_helium_optee::ecdh(point.x().unwrap(), point.y().unwrap())?;
+        let shared_secret_bytes =
+            iotpi_helium_optee::ecdh(self.slot, point.x().unwrap(), point.y().unwrap())?;
         Ok(ecc_compact::SharedSecret(p256::ecdh::SharedSecret::from(
             *p256::FieldBytes::from_slice(&shared_secret_bytes),
         )))

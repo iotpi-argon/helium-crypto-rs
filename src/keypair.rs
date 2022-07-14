@@ -297,13 +297,13 @@ mod tests {
     #[cfg(feature = "tee")]
     #[test]
     fn ecdh_tee() {
-        let keypair = crate::tee::Keypair::keypair();
+        let keypair = crate::tee::Keypair::keypair(0);
         ecdh_test_keypair(&Keypair::Tee(keypair));
     }
     #[cfg(feature = "tee")]
     #[test]
     fn sign_tee() {
-        let keypair = crate::tee::Keypair::keypair();
+        let keypair = crate::tee::Keypair::keypair(0);
         sign_test_keypair(&Keypair::Tee(keypair));
     }
 }
