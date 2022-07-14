@@ -52,16 +52,16 @@ impl signature::Signer<Signature> for Keypair {
 }
 
 impl Keypair {
-    pub fn keypair(slot: u8) -> Self {
+    pub fn keypair(slot: u8, network: Network) -> Self {
         let pubkey = iotpi_helium_optee::publickey(slot).expect("failed to get tee public key");
         let mut key_bytes = vec![4u8];
         key_bytes.extend_from_slice(&pubkey.0);
         key_bytes.extend_from_slice(&pubkey.1);
         let keypair_pubkey = ecc_compact::PublicKey::try_from(key_bytes.as_ref())
             .expect("failed to covert to ecc_compact::PublicKey");
-        let public_key = public_key::PublicKey::for_network(Network::MainNet, keypair_pubkey);
+        let public_key = public_key::PublicKey::for_network(network, keypair_pubkey);
         let keypair = Keypair {
-            network: Network::MainNet,
+            network,
             public_key,
             slot,
         };
